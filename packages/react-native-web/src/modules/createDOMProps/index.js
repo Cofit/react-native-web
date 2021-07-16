@@ -793,7 +793,9 @@ const createDOMProps = (elementType, props, options) => {
     }
   );
   if (className) {
-    domProps.className = className;
+    domProps.className = [className, domProps.className]
+      .filter((c) => c != null && c !== '')
+      .join(' ');
   }
   if (inlineStyle) {
     domProps.style = inlineStyle;

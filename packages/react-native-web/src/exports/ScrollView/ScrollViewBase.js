@@ -7,12 +7,10 @@
  * @flow
  */
 
-import type { ViewProps } from '../View';
-
 import * as React from 'react';
+import useMergeRefs from '../../modules/useMergeRefs';
 import StyleSheet from '../StyleSheet';
 import View from '../View';
-import useMergeRefs from '../../modules/useMergeRefs';
 
 type Props = {
   ...ViewProps,
@@ -102,7 +100,6 @@ const ScrollViewBase: React.AbstractComponent<
   const prevFirstVisibleOffsetRef = React.useRef(null);
   const firstVisibleViewRef = React.useRef(null);
   const mutationObserverRef = React.useRef(null);
-  const lastScrollOffsetRef = React.useRef(0);
 
   const getScrollOffset = React.useCallback(() => {
     if (scrollRef.current == null) {
@@ -128,8 +125,6 @@ const ScrollViewBase: React.AbstractComponent<
 
     if (e.target === scrollRef.current) {
       e.persist();
-
-      lastScrollOffsetRef.current = getScrollOffset();
 
       prepareForMaintainVisibleContentPosition();
 
@@ -270,15 +265,6 @@ const ScrollViewBase: React.AbstractComponent<
     mutationObserverRef.current?.disconnect();
 
     const mutationObserver = new MutationObserver(() => {
-      // Chrome adjusts scroll position when elements are added at the top of the
-      // view. We want to have the same behavior as react-native / Safari so we
-      // reset the scroll position to the last value we got from an event.
-      const lastScrollOffset = lastScrollOffsetRef.current;
-      const scrollOffset = getScrollOffset();
-      if (lastScrollOffset !== scrollOffset) {
-        scrollToOffset(lastScrollOffset, false);
-      }
-
       // This needs to execute after scroll events are dispatched, but
       // in the same tick to avoid flickering. rAF provides the right timing.
       requestAnimationFrame(() => {
@@ -292,12 +278,7 @@ const ScrollViewBase: React.AbstractComponent<
     });
 
     mutationObserverRef.current = mutationObserver;
-  }, [
-    adjustForMaintainVisibleContentPosition,
-    getContentView,
-    getScrollOffset,
-    scrollToOffset
-  ]);
+  }, [adjustForMaintainVisibleContentPosition, getContentView]);
 
   React.useEffect(() => {
     prepareForMaintainVisibleContentPosition();
